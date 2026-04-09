@@ -27,4 +27,20 @@ macro InitOAM
         jr nz, .init_oam\@
 endm
 
+; Turns the lcd on, with the window enabled 
+; (and other preferred graphics features)
+macro EnableLCDWinOn
+    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON | LCDCF_WINON
+    ld [rLCDC], a
+
+endm
+
+; Turns the lcd on, with the window disabled 
+; (and other preferred graphics features)
+macro EnableLCDWinOff
+    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON | LCDCF_WINOFF
+    ld [rLCDC], a
+
+endm
+
 endc

@@ -1,7 +1,13 @@
-; Add a file header comment to all code files except hardware.inc
+; CS240: World 6: Game Draft
+; @file graphics.asm
+; @author Tommy Trenk
+; @date April 8, 2026
+; Initializes graphics, and contains logic for the start screen
+
 include "src/utils.inc"
 include "src/wram.inc"
 include "src/graphics.inc"
+include "src/joypad.inc"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -40,14 +46,46 @@ endm
 section "graphics", rom0
 
 init_graphics:
+; init the palettes
+    ld a, %11100100
+    ld [rBGP], a
+    ld [rOBP0], a
+    ld a, %00011011
+    ld [rOBP1], a
+
+    ; init graphics data
+    InitOAM
+    LoadGraphicsDataIntoVRAM
+
+    ; enable the vblank interrupt
+    ld a, IEF_VBLANK
+    ld [rIE], a
+    ei
+
+    ; set the background position
+    xor a
+    ld [rSCY], a
+    ld a, 48
+    ld [rSCX], a
+
     ret
 
-export init_graphics
+; checks if START is pressed, setting the z flag if so
+check_start:
+TestPadInput PAD_PRSS, PADF_START
+    jr nz, .start_checked
+        xor a
+        jr .done
+    .start_checked
+    ld a, 1
+    .done
+    ret
+
+export init_graphics, check_start
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 section "graphics_data", rom0[GRAPHICS_DATA_ADDRESS_START]
-incbin "assets/tileset.chr"
-incbin "assets/background.tlm"
-incbin "assets/window.tlm"
-
+incbin "assets/brtileset.chr"
+incbin "assets/brbackground.tlm"
+incbin "assets/brwindow.tlm"

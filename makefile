@@ -1,6 +1,6 @@
 
 # when creating new .asm files add them to the following list
-SOURCES = src/graphics.asm src/main.asm
+SOURCES = src/graphics.asm src/main.asm src/sprites.asm
 OBJECTS = $(patsubst src/%.asm,build/%.o,$(SOURCES))
 
 .PHONY: all clean

@@ -10,7 +10,8 @@ def PAD_PREV    rb 1
 def PAD_PRSS    rb 1
 def PAD_RLSE    rb 1
 
-; WRAM variables for ...
+; WRAM variables for player
+def PLAYER_TIMER rb 1
 
 def WRAM_END    rb 0
 

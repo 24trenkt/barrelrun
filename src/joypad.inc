@@ -74,4 +74,10 @@ macro UpdateJoypad
     ld [PAD_RLSE], a
 endm
 
+; Tests if the pad input given by \2 is currently held
+macro TestPadInput
+    ld a, [\1]
+    and a, \2
+endm
+
 endc
