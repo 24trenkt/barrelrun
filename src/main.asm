@@ -21,6 +21,7 @@ entrypoint:
 section "main", rom0[$0150]
 main:
     ; Initialize the background and window, turning both on
+    .begin
     DisableLCD
     call init_graphics
     EnableLCDWinOn
@@ -45,4 +46,5 @@ main:
         UpdateJoypad
         call move_player
         call move_barrels
+        jp z, .begin
         jr .loop

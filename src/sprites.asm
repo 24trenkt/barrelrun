@@ -37,6 +37,8 @@ def MIDDLE_LANE_R         equ 88
 def RIGHT_LANE_L          equ 96
 def RIGHT_LANE_R          equ 104
 
+def VERTICAL_COLLISION_Y equ PLAYER_START_Y - 8
+
 def OAMA_NO_FLAGS         equ 0
 
 section "player", rom0
@@ -155,18 +157,36 @@ move_barrels:
         inc a
         ld [BARREL_1_L + OAMA_Y], a
         ld [BARREL_1_R + OAMA_Y], a
+        cp a, VERTICAL_COLLISION_Y
+        jr nz, .no_collision_1 
+            ld a, [BARREL_1_L + OAMA_X]
+            ld b, a
+            ld a, [PLAYER_SPRITE_L + OAMA_X]
+            cp a, b
+            jr nz, .no_collision_1
+                ret
 
-    ld a, [BARREL_2_L + OAMA_Y]
-    cp a, 160
-    jr nz, .second_on_screen
-        ld a, 0
-        ld [BARREL_2_L + OAMA_Y], a
-        ld [BARREL_2_R + OAMA_Y], a
-    .second_on_screen
-        inc a
-        ld [BARREL_2_L + OAMA_Y], a
-        ld [BARREL_2_R + OAMA_Y], a
+    .no_collision_1
+        ld a, [BARREL_2_L + OAMA_Y]
+        cp a, 160
+        jr nz, .second_on_screen
+            ld a, 0
+            ld [BARREL_2_L + OAMA_Y], a
+            ld [BARREL_2_R + OAMA_Y], a
+        .second_on_screen
+            inc a
+            ld [BARREL_2_L + OAMA_Y], a
+            ld [BARREL_2_R + OAMA_Y], a
+            cp a, VERTICAL_COLLISION_Y
+            jr nz, .no_collision_2
+                ld a, [BARREL_2_L + OAMA_X]
+                ld b, a
+                ld a, [PLAYER_SPRITE_L + OAMA_X]
+                cp a, b
+                jr nz, .no_collision_2
+                    ret
 
-    ret
+    .no_collision_2
+        ret
 
 export init_player, init_barrels, move_player, move_barrels
