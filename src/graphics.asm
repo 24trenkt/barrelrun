@@ -28,6 +28,11 @@ def GRAPHICS_DATA_SIZE              equ (TILES_BYTE_SIZE + TILEMAPS_BYTE_SIZE)
 def GRAPHICS_DATA_ADDRESS_END       equ ($8000)
 def GRAPHICS_DATA_ADDRESS_START     equ (GRAPHICS_DATA_ADDRESS_END - GRAPHICS_DATA_SIZE)
 
+def PAL_1                           equ %11100100
+def PAL_2                           equ %00011011
+def BGX_START                       equ 48
+def NOT_ZERO                        equ 1
+
 ; load the graphics data from ROM to VRAM
 macro LoadGraphicsDataIntoVRAM
     ld de, GRAPHICS_DATA_ADDRESS_START
@@ -47,10 +52,10 @@ section "graphics", rom0
 
 init_graphics:
 ; init the palettes
-    ld a, %11100100
+    ld a, PAL_1
     ld [rBGP], a
     ld [rOBP0], a
-    ld a, %00011011
+    ld a, PAL_2
     ld [rOBP1], a
 
     ; init graphics data
@@ -65,7 +70,7 @@ init_graphics:
     ; set the background position
     xor a
     ld [rSCY], a
-    ld a, 48
+    ld a, BGX_START
     ld [rSCX], a
 
     ret
@@ -77,7 +82,7 @@ TestPadInput PAD_PRSS, PADF_START
         xor a
         jr .done
     .start_checked
-    ld a, 1
+    ld a, NOT_ZERO
     .done
     ret
 
@@ -86,6 +91,6 @@ export init_graphics, check_start
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 section "graphics_data", rom0[GRAPHICS_DATA_ADDRESS_START]
-incbin "assets/brtileset.chr"
+incbin "assets/brtileset2.chr"
 incbin "assets/brbackground.tlm"
 incbin "assets/brwindow.tlm"

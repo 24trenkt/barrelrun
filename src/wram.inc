@@ -12,6 +12,11 @@ def PAD_RLSE    rb 1
 
 ; WRAM variables for player
 def PLAYER_TIMER rb 1
+def PLAYER_FRAME rb 1
+
+; WRAM variables for rock
+def ROCK_TIMER   rb 1
+def AMMO_LEFT    rb 1
 
 def WRAM_END    rb 0
 
