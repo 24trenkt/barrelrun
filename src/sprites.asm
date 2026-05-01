@@ -234,102 +234,18 @@ macro MoveRow
     .done\@
 endm
 
-macro CheckCollision0
+macro CheckCollision
 ld a, [PLAYER_SPRITE_L + OAMA_X]
 ld b, a
-ld a, [BARREL_00_L + OAMA_X]
+ld a, [\1 + OAMA_X]
 cp a, b
 jr z, .collision\@
 
-ld a, [BARREL_01_L + OAMA_X]
+ld a, [\2 + OAMA_X]
 cp a, b
 jr z, .collision\@
 
-ld a, [BARREL_02_L + OAMA_X]
-cp a, b
-jr z, .collision\@
-jr .no_collision\@
-
-.collision\@
-    scf
-    jr .done\@
-
-.no_collision\@
-    scf
-    ccf
-    jr .done\@
-
-.done\@
-endm
-
-macro CheckCollision1
-ld a, [PLAYER_SPRITE_L + OAMA_X]
-ld b, a
-ld a, [BARREL_10_L + OAMA_X]
-cp a, b
-jr z, .collision\@
-
-ld a, [BARREL_11_L + OAMA_X]
-cp a, b
-jr z, .collision\@
-
-ld a, [BARREL_12_L + OAMA_X]
-cp a, b
-jr z, .collision\@
-jr .no_collision\@
-
-.collision\@
-    scf
-    jr .done\@
-
-.no_collision\@
-    scf
-    ccf
-    jr .done\@
-
-.done\@
-endm
-
-macro CheckCollision2
-ld a, [PLAYER_SPRITE_L + OAMA_X]
-ld b, a
-ld a, [BARREL_20_L + OAMA_X]
-cp a, b
-jr z, .collision\@
-
-ld a, [BARREL_21_L + OAMA_X]
-cp a, b
-jr z, .collision\@
-
-ld a, [BARREL_22_L + OAMA_X]
-cp a, b
-jr z, .collision\@
-jr .no_collision\@
-
-.collision\@
-    scf
-    jr .done\@
-
-.no_collision\@
-    scf
-    ccf
-    jr .done\@
-
-.done\@
-endm
-
-macro CheckCollision3
-ld a, [PLAYER_SPRITE_L + OAMA_X]
-ld b, a
-ld a, [BARREL_30_L + OAMA_X]
-cp a, b
-jr z, .collision\@
-
-ld a, [BARREL_31_L + OAMA_X]
-cp a, b
-jr z, .collision\@
-
-ld a, [BARREL_32_L + OAMA_X]
+ld a, [\3 + OAMA_X]
 cp a, b
 jr z, .collision\@
 jr .no_collision\@
@@ -588,7 +504,7 @@ move_barrels:
     MoveRow ROW_0_Y
     cp a, VERTICAL_COLLISION_Y
     jr nz, .no_collision_0
-        CheckCollision0
+        CheckCollision BARREL_00_L, BARREL_01_L, BARREL_02_L
         jr nc, .no_collision_0
             xor a
             ret
@@ -596,7 +512,7 @@ move_barrels:
     MoveRow ROW_1_Y
     cp a, VERTICAL_COLLISION_Y
     jr nz, .no_collision_1
-        CheckCollision1
+        CheckCollision BARREL_10_L, BARREL_11_L, BARREL_12_L
         jr nc, .no_collision_1
             xor a
             ret
@@ -604,7 +520,7 @@ move_barrels:
     MoveRow ROW_2_Y
     cp a, VERTICAL_COLLISION_Y
     jr nz, .no_collision_2
-        CheckCollision2
+        CheckCollision BARREL_20_L, BARREL_21_L, BARREL_22_L
         jr nc, .no_collision_2
             xor a
             ret
@@ -612,7 +528,7 @@ move_barrels:
     MoveRow ROW_3_Y
     cp a, VERTICAL_COLLISION_Y
     jr nz, .no_collision_3
-        CheckCollision3
+        CheckCollision BARREL_30_L, BARREL_31_L, BARREL_32_L
         jr nc, .no_collision_3
             xor a
             ret
