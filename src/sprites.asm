@@ -104,6 +104,8 @@ def ANIMATE1              equ 0
 def ANIMATE2              equ 4
 def ANIMATE3              equ 8
 
+def TEST                  equ 120
+
 
 def OAMA_NO_FLAGS         equ 0
 
@@ -420,7 +422,7 @@ move_player:
     TestPadInput PAD_PRSS, PADF_LEFT
     jr nz, .left_checked
         ld a, [PLAYER_SPRITE_L + OAMA_X]
-        ; ld [rDIV], a
+        ld [rDIV], a
         cp a, LEFT_LANE_L
         jr z, .left_checked
             sub a, 16
@@ -432,7 +434,7 @@ move_player:
     TestPadInput PAD_PRSS, PADF_RIGHT
     jr nz, .right_checked
         ld a, [PLAYER_SPRITE_L + OAMA_X]
-        ; ld [rDIV], a
+        ld [rDIV], a
         cp a, RIGHT_LANE_L
         jr z, .right_checked
             add a, 16
@@ -502,32 +504,44 @@ move_barrels:
     add hl, de
 
     MoveRow ROW_0_Y
-    cp a, VERTICAL_COLLISION_Y
-    jr nz, .no_collision_0
-        CheckCollision BARREL_00_L, BARREL_01_L, BARREL_02_L
-        jr nc, .no_collision_0
-            xor a
-            ret
+    ld a, [ROW_0_Y]
+    cp a, 144
+    jr nc, .no_collision_0
+        cp a, 128
+            jr c, .no_collision_0
+            CheckCollision BARREL_00_L, BARREL_01_L, BARREL_02_L
+            jr nc, .no_collision_0
+                xor a
+                ret
     .no_collision_0
     MoveRow ROW_1_Y
-    cp a, VERTICAL_COLLISION_Y
-    jr nz, .no_collision_1
+    ld a, [ROW_1_Y]
+    cp a, 144
+    jr nc, .no_collision_1
+    cp a, 128
+    jr c, .no_collision_1
         CheckCollision BARREL_10_L, BARREL_11_L, BARREL_12_L
         jr nc, .no_collision_1
             xor a
             ret
     .no_collision_1
     MoveRow ROW_2_Y
-    cp a, VERTICAL_COLLISION_Y
-    jr nz, .no_collision_2
+    ld a, [ROW_2_Y]
+    cp a, 144
+    jr nc, .no_collision_2
+    cp a, 128
+    jr c, .no_collision_2
         CheckCollision BARREL_20_L, BARREL_21_L, BARREL_22_L
         jr nc, .no_collision_2
             xor a
             ret
     .no_collision_2
     MoveRow ROW_3_Y
-    cp a, VERTICAL_COLLISION_Y
-    jr nz, .no_collision_3
+    ld a, [ROW_3_Y]
+    cp a, 144
+    jr nc, .no_collision_3
+    cp a, 128
+    jr c, .no_collision_3
         CheckCollision BARREL_30_L, BARREL_31_L, BARREL_32_L
         jr nc, .no_collision_3
             xor a
