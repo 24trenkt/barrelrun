@@ -12,11 +12,15 @@ include "src/wram.inc"
 
 def WINDOW_X            equ 120
 def WINDOW_Y            equ 136
+
+; These should be in an inc file
 def NUM_TO_TILE         equ 200
 def PLAYER_SPRITE_L     equ _OAMRAM
 def PLAYER_SPRITE_R     equ _OAMRAM + sizeof_OAM_ATTRS
 def PLAYER_L_START_X    equ 80
 def PLAYER_R_START_X    equ 88
+def MOD_8                 equ %00000111
+def MOD_16                equ %00001111
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -69,7 +73,7 @@ main:
         call move_player
         call throw_rock
         call move_barrels
-        jp z, .begin
+        jr z, .game_over
         ld a, [BARRELS_LEFT]
         or a
         jp z, .next_level
@@ -108,6 +112,31 @@ main:
     jr z, .win
     EnableLCD LCDCF_WINON
     jp .start_screen
+
+.game_over
+    ld c, 60
+    .game_over_loop
+    halt
+    ld a, [PLAYER_TIMER]
+    inc a
+    ld [PLAYER_TIMER], a
+
+    ; compute %8
+    and MOD_16
+    jr nz, .pal1
+        ; Use tile 1
+        copy [PLAYER_SPRITE_L + OAMA_FLAGS], OAMF_PAL1
+        copy [PLAYER_SPRITE_R + OAMA_FLAGS], OAMF_PAL1
+    .pal1
+    cp a, MOD_8
+    jr nz, .done
+        ; use tile 2
+        copy [PLAYER_SPRITE_L + OAMA_FLAGS], OAMF_PAL0
+        copy [PLAYER_SPRITE_R + OAMA_FLAGS], OAMF_PAL0
+    .done
+        dec c
+        jr nz, .game_over_loop
+    jp .begin
 
 .win
     ld c, 164
