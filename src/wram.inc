@@ -28,6 +28,7 @@ def ROW_3_Y      rb 1
 def BARRELS_LEFT rb 1
 def RESET_Y      rb 1
 def SPACING      rb 1
+def LVL_COUNTER  rb 1 
 
 def WRAM_END    rb 0
 

@@ -16,6 +16,10 @@ def PLAYER_R_START_X      equ 88
 def PLAYER_START_Y        equ 136
 def PLAYER_L_TILEID       equ 0
 def PLAYER_R_TILEID       equ 2
+def PLAYER_L_WIN_1        equ 20
+def PLAYER_R_WIN_1        equ 22
+def PLAYER_L_WIN_2        equ 24
+def PLAYER_R_WIN_2        equ 26
 
 ; def BARREL_1_L            equ _OAMRAM + sizeof_OAM_ATTRS * 2
 ; def BARREL_1_R            equ _OAMRAM + sizeof_OAM_ATTRS * 3
@@ -90,6 +94,8 @@ def AMMO_COUNTER_TILE     equ $9C05
 def NUM_TO_TILE           equ 200
 
 def MOD_8                 equ %00000111
+def MOD_16                equ %00001111
+def MOD_32                equ %00011111
 def OFF_SCREEN            equ 160
 def L_R_CONVERT           equ 2
 def TILE_WIDTH            equ 8
@@ -142,25 +148,27 @@ endm
 
 macro MakeSpacing
     ld a, \1
+    ld b, a
     sla a
     sla a
-    cp a, 180
+    cp a, 160
     jr c, .spacing\@
+        inc a
         ld [RESET_Y], a 
 
     .spacing\@
     xor a
     ld [ROW_0_Y], a
-    add a, \1
+    add a, b
 
     ld [ROW_1_Y], a
-    add a, \1
+    add a, b
 
     ld [ROW_2_Y], a
-    add a, \1
+    add a, b
 
     ld [ROW_3_Y], a
-    add a, \1
+    add a, b
 endm
 
 macro InitBarrel
@@ -205,7 +213,10 @@ macro MoveRow
     ld hl, RESET_Y
     cp a, [hl]
     pop hl
-    jr nz, .move_loop\@
+    jp nz, .move_loop\@
+        ld a, [BARRELS_LEFT]
+        dec a
+        ld [BARRELS_LEFT], a
         push hl
         inc hl
         GetRandom
@@ -220,7 +231,7 @@ macro MoveRow
         add hl, de
         dec c
         jr nz, .move_loop\@  
-
+    .done\@
 endm
 
 macro CheckCollision0
@@ -400,6 +411,10 @@ macro CheckRow
         ld [hl], a
         add hl, de
         ld [hl], a
+        copy [rNR41], $0C
+        copy [rNR42], $FE
+        copy [rNR43], $8B
+        copy [rNR44], $C0
         ; ld [ROCK_L + OAMA_X], a
         ; ld [ROCK_R + OAMA_X], a
     .done\@
@@ -436,8 +451,8 @@ init_player:
 
 ; Creates two barrel obstacles
 init_barrels:
-    MakeSpacing LEVEL_ONE_SPACING
-    copy [BARRELS_LEFT], 20
+    MakeSpacing [SPACING]
+    copy [BARRELS_LEFT], 32
 
     GetRandom
     InitBarrel BARREL_00_L, BARREL_00_R, [ROW_0_Y]
@@ -458,7 +473,6 @@ init_barrels:
     InitBarrel BARREL_30_L, BARREL_30_R, [ROW_3_Y]
     InitBarrel BARREL_31_L, BARREL_31_R, [ROW_3_Y]
     InitBarrel BARREL_32_L, BARREL_32_R, [ROW_3_Y]
-    
 
     ret
 
@@ -476,6 +490,9 @@ init_rock:
 
     ld a, 3
     ld [AMMO_LEFT], a
+    ld hl, AMMO_COUNTER_TILE
+    add a, NUM_TO_TILE
+    ld [hl], a
     xor a
     ld [ROCK_TIMER], a
 
@@ -604,4 +621,33 @@ move_barrels:
         inc a
         ret
 
-export init_player, init_barrels, init_rock, move_player, move_barrels, throw_rock
+animate_win:
+    ; update the timer
+    ld a, [PLAYER_TIMER]
+    inc a
+    ld [PLAYER_TIMER], a
+
+    ; compute %8
+    and MOD_32
+    jr nz, .walk1
+        ; Use tile 1
+        copy [PLAYER_SPRITE_L + OAMA_TILEID], PLAYER_L_WIN_1
+        copy [PLAYER_SPRITE_R + OAMA_TILEID], PLAYER_R_WIN_1
+    .walk1
+    cp a, MOD_16
+    jr nz, .check_start
+        ; use tile 2
+        copy [PLAYER_SPRITE_L + OAMA_TILEID], PLAYER_L_WIN_2
+        copy [PLAYER_SPRITE_R + OAMA_TILEID], PLAYER_R_WIN_2
+    .check_start
+        UpdateJoypad
+        TestPadInput PAD_PRSS, PADF_START
+        jr nz, .start_checked
+            xor a
+        jr .done
+        .start_checked
+            ld a, 1
+        .done
+        ret 
+
+export init_player, init_barrels, init_rock, move_player, move_barrels, throw_rock, animate_win

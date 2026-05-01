@@ -91,6 +91,6 @@ export init_graphics, check_start
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 section "graphics_data", rom0[GRAPHICS_DATA_ADDRESS_START]
-incbin "assets/brtileset2.chr"
+incbin "assets/brtilesetfinal.chr"
 incbin "assets/brbackground.tlm"
-incbin "assets/brwindow.tlm"
+incbin "assets/brnewwindow.tlm"

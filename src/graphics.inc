@@ -29,9 +29,20 @@ endm
 
 ; Turns the lcd on with desired graphics parameters
 macro EnableLCD
-    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON | LCDCF_WINON
+    ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON | \1
     ld [rLCDC], a
+endm
 
+macro EnableAmmoCounter
+    ld hl, $9C00
+    ld a, 135
+    ld [hli], a
+    ld a, 157
+    ld [hli], a
+    ld [hli], a
+    ld a, 169
+    ld [hli], a
+    ld [hl], 180
 endm
 
 endc
