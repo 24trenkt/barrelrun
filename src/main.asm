@@ -7,6 +7,8 @@
 include "src/hardware.inc"
 include "src/graphics.inc"
 include "src/joypad.inc"
+include "src/utils.inc"
+include "src/wram.inc"
 
 def WINDOW_X            equ 120
 def WINDOW_Y            equ 136
@@ -41,6 +43,7 @@ main:
         jr nz, .start_screen
     DisableLCD
     call init_player
+    ; copy [SPACING], 50
     call init_barrels
     call init_rock
     EnableLCD
@@ -60,4 +63,18 @@ main:
         call throw_rock
         call move_barrels
         jp z, .begin
+
+        ldh a, [rLY]
+        cp 144
+        jr nc, .still_in_vblank ; rLY still in 144-153
+
+        .overrun
+            ; ld a, %00000000
+            ; ld [rBGP], a
+            ; jr .loop
+            jp .begin
+
+        .still_in_vblank
+            ld a, %11100100
+            ld [rBGP], a 
         jr .loop

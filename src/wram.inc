@@ -18,6 +18,17 @@ def PLAYER_FRAME rb 1
 def ROCK_TIMER   rb 1
 def AMMO_LEFT    rb 1
 
+; WRAM variables for barrel y-values
+def ROW_0_Y      rb 1
+def ROW_1_Y      rb 1
+def ROW_2_Y      rb 1
+def ROW_3_Y      rb 1
+
+; WRAM variables for levels and spacing
+def BARRELS_LEFT rb 1
+def RESET_Y      rb 1
+def SPACING      rb 1
+
 def WRAM_END    rb 0
 
 def WRAM_USAGE equ (WRAM_END - _RAM)
