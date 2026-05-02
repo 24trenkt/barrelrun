@@ -1,7 +1,7 @@
-; CS240: World 6: Game Draft
-; @file graphics.asm
+; CS240: World 8: Full Game
+; @file main.asm
 ; @author Tommy Trenk
-; @date April 8, 2026
+; @date May 1, 2026
 ; Contains function calls to initilize data, and executes
 ; the main game loop, moving the background, player, and obstacles
 include "src/hardware.inc"
@@ -12,15 +12,15 @@ include "src/wram.inc"
 
 def WINDOW_X            equ 120
 def WINDOW_Y            equ 136
+def WIN_X_START         equ 7
+def SPACING_START       equ 50
+def LEVEL_COUNT_START   equ 200
+def LEVEL_INDEX         equ $9CCC
+def SPACING_DECREASE    equ 10
+def ONE_SEC             equ 60
+def MOVE_UP_FRAMES      equ 164
+def EIGHT               equ 8
 
-; These should be in an inc file
-def NUM_TO_TILE         equ 200
-def PLAYER_SPRITE_L     equ _OAMRAM
-def PLAYER_SPRITE_R     equ _OAMRAM + sizeof_OAM_ATTRS
-def PLAYER_L_START_X    equ 80
-def PLAYER_R_START_X    equ 88
-def MOD_8                 equ %00000111
-def MOD_16                equ %00001111
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -37,12 +37,12 @@ main:
     ; Initialize the background and window, turning both on
     .begin
     DisableLCD
-    ld a, 7
+    ld a, WIN_X_START
     ld [rWX], a
     ld a, 0
     ld [rWY], a
-    copy [SPACING], 50
-    copy [LVL_COUNTER], 200
+    copy [SPACING], SPACING_START
+    copy [LVL_COUNTER], LEVEL_COUNT_START
     call init_graphics
     EnableLCD LCDCF_WINON
 
@@ -76,45 +76,31 @@ main:
         jr z, .game_over
         ld a, [BARRELS_LEFT]
         or a
-        jp z, .next_level
-
-        ldh a, [rLY]
-        cp 144
-        jr nc, .still_in_vblank ; rLY still in 144-153
-
-        .overrun
-            ld a, %00000000
-            ld [rBGP], a
-            jr .loop
-            ; jp .begin
-
-        .still_in_vblank
-            ld a, %11100100
-            ld [rBGP], a 
+        jr z, .next_level
         jr .loop
 
 .next_level
     DisableLCD
-    ld a, 7
+    ld a, WIN_X_START
     ld [rWX], a
     ld a, 0
     ld [rWY], a
     call init_graphics
-    ld hl, $9CCC
+    ld hl, LEVEL_INDEX
     ld a, [LVL_COUNTER]
     inc a
     ld [LVL_COUNTER], a
     ld [hl], a
     ld a, [SPACING]
-    sub a, 10
+    sub a, SPACING_DECREASE
     ld [SPACING], a
-    cp a, 10
+    cp a, SPACING_DECREASE
     jr z, .win
     EnableLCD LCDCF_WINON
     jp .start_screen
 
 .game_over
-    ld c, 60
+    ld c, ONE_SEC
     .game_over_loop
     halt
     ld a, [PLAYER_TIMER]
@@ -139,10 +125,10 @@ main:
     jp .begin
 
 .win
-    ld c, 164
+    ld c, MOVE_UP_FRAMES
     ld a, PLAYER_L_START_X
     ld [PLAYER_SPRITE_L + OAMA_X], a
-    add a, 8
+    add a, EIGHT
     ld [PLAYER_SPRITE_R + OAMA_X], a
     EnableLCD LCDCF_WINOFF
     .win_loop

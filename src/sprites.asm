@@ -1,18 +1,15 @@
-; CS240: World 6: Game Draft
-; @file graphics.asm
+; CS240: World 8: Full Game
+; @file sprites.asm
 ; @author Tommy Trenk
-; @date April 18, 2026
+; @date May 1, 2026
 ; Loads multiple sprites, representing the player and various
 ; obstacles into OAM, and contains function to update sprites
 
 include "src/utils.inc"
 include "src/wram.inc"
 include "src/joypad.inc"
+include "src/graphics.inc"
 
-def PLAYER_SPRITE_L       equ _OAMRAM
-def PLAYER_SPRITE_R       equ _OAMRAM + sizeof_OAM_ATTRS
-def PLAYER_L_START_X      equ 80
-def PLAYER_R_START_X      equ 88
 def PLAYER_START_Y        equ 136
 def PLAYER_L_TILEID       equ 0
 def PLAYER_R_TILEID       equ 2
@@ -20,13 +17,6 @@ def PLAYER_L_WIN_1        equ 20
 def PLAYER_R_WIN_1        equ 22
 def PLAYER_L_WIN_2        equ 24
 def PLAYER_R_WIN_2        equ 26
-
-; def BARREL_1_L            equ _OAMRAM + sizeof_OAM_ATTRS * 2
-; def BARREL_1_R            equ _OAMRAM + sizeof_OAM_ATTRS * 3
-; def BARREL_2_L            equ _OAMRAM + sizeof_OAM_ATTRS * 4
-; def BARREL_2_R            equ _OAMRAM + sizeof_OAM_ATTRS * 5
-; def BARREL_1_START_Y      equ 0
-; def BARREL_2_START_Y      equ 60
 
 ; Barrel Row 0
 def BARREL_00_L           equ _OAMRAM + sizeof_OAM_ATTRS * 2
@@ -88,13 +78,10 @@ def RIGHT_LANE_L          equ 96
 def RIGHT_LANE_R          equ 104
 
 def VERTICAL_COLLISION_Y  equ PLAYER_START_Y - 8
+def COLLIDE_UPPER         equ 144
 def ANIMATE_LENGTH        equ 4
 
 def AMMO_COUNTER_TILE     equ $9C05
-def NUM_TO_TILE           equ 200
-
-def MOD_8                 equ %00000111
-def MOD_16                equ %00001111
 def MOD_32                equ %00011111
 def OFF_SCREEN            equ 160
 def L_R_CONVERT           equ 2
@@ -104,7 +91,22 @@ def ANIMATE1              equ 0
 def ANIMATE2              equ 4
 def ANIMATE3              equ 8
 
-def TEST                  equ 120
+def SPRITES_PER_ROW       equ 6
+def BIT_1                 equ 1
+def BIT_2                 equ 2
+def BIT_3                 equ 3
+
+def SOUND_VAR_1           equ $0C
+def SOUND_VAR_2           equ $FE
+def SOUND_VAR_3           equ $8B
+def SOUND_VAR_4           equ $C0
+
+def BIT_CONSTANT          equ %00001110
+def SIXTEEN               equ 16
+def EIGHT                 equ 8
+
+def ROCK_TIME             equ 20
+
 
 
 def OAMA_NO_FLAGS         equ 0
@@ -153,7 +155,7 @@ macro MakeSpacing
     ld b, a
     sla a
     sla a
-    cp a, 160
+    cp a, OFF_SCREEN
     jr c, .spacing\@
         inc a
         ld [RESET_Y], a 
@@ -207,7 +209,7 @@ macro PlaceBarrel
 endm
 
 macro MoveRow
-    ld c, 6
+    ld c, SPRITES_PER_ROW
     ld a, [hl]
     inc a
     ld [\1], a
@@ -222,9 +224,9 @@ macro MoveRow
         push hl
         inc hl
         GetRandom
-        PlaceBarrel LEFT_LANE_L, LEFT_LANE_R, 1
-        PlaceBarrel MIDDLE_LANE_L, MIDDLE_LANE_R, 2
-        PlaceBarrel RIGHT_LANE_L, RIGHT_LANE_R, 3
+        PlaceBarrel LEFT_LANE_L, LEFT_LANE_R, BIT_1
+        PlaceBarrel MIDDLE_LANE_L, MIDDLE_LANE_R, BIT_2
+        PlaceBarrel RIGHT_LANE_L, RIGHT_LANE_R, BIT_3
         xor a
         ld [\1], a
         pop hl
@@ -274,7 +276,7 @@ macro RockCollision
         ld hl, BARREL_00_L
         inc hl
         CheckRow
-        jp .done\@ ; Change Back to jr!!!
+        jp .done\@ 
 
     .check_1\@
     ld a, [ROW_1_Y]
@@ -307,9 +309,6 @@ macro RockCollision
 endm
 
 macro CheckRow
-    ; hl = barrel sprite + oama_x
-    ; b has rock y + visual collision buffer
-    ; set carry flag if collision, clear if not
     ld de, sizeof_OAM_ATTRS
     ld a, [ROCK_L + OAMA_X]
     ld b, a
@@ -329,22 +328,18 @@ macro CheckRow
         ld [hl], a
         add hl, de
         ld [hl], a
-        copy [rNR41], $0C
-        copy [rNR42], $FE
-        copy [rNR43], $8B
-        copy [rNR44], $C0
-        ; ld [ROCK_L + OAMA_X], a
-        ; ld [ROCK_R + OAMA_X], a
+        copy [rNR41], SOUND_VAR_1
+        copy [rNR42], SOUND_VAR_2
+        copy [rNR43], SOUND_VAR_3
+        copy [rNR44], SOUND_VAR_4
     .done\@
 endm
 
 macro GetRandom
     .random\@
     ld a, [rDIV]
-    and a, %00001110
-    cp a, %00001110
-    ; and a, %00000111
-    ; cp a, %00000111
+    and a, BIT_CONSTANT
+    cp a, BIT_CONSTANT
     jr z, .random\@
     cp a, 0
     jr z, .random\@
@@ -370,7 +365,7 @@ init_player:
 ; Creates two barrel obstacles
 init_barrels:
     MakeSpacing [SPACING]
-    copy [BARRELS_LEFT], 32
+    copy [BARRELS_LEFT], MOD_32
 
     GetRandom
     InitBarrel BARREL_00_L, BARREL_00_R, [ROW_0_Y]
@@ -406,7 +401,7 @@ init_rock:
     copy [ROCK_R + OAMA_TILEID], ROCK_R_TILEID
     copy [ROCK_R + OAMA_FLAGS], OAMA_NO_FLAGS
 
-    ld a, 3
+    ld a, BIT_3
     ld [AMMO_LEFT], a
     ld hl, AMMO_COUNTER_TILE
     add a, NUM_TO_TILE
@@ -425,9 +420,9 @@ move_player:
         ld [rDIV], a
         cp a, LEFT_LANE_L
         jr z, .left_checked
-            sub a, 16
+            sub a, SIXTEEN
             ld [PLAYER_SPRITE_L + OAMA_X], a
-            add a, 8
+            add a, EIGHT
             ld [PLAYER_SPRITE_R + OAMA_X], a
     .left_checked
 
@@ -437,9 +432,9 @@ move_player:
         ld [rDIV], a
         cp a, RIGHT_LANE_L
         jr z, .right_checked
-            add a, 16
+            add a, SIXTEEN
             ld [PLAYER_SPRITE_L + OAMA_X], a
-            add a, 8
+            add a, EIGHT
             ld [PLAYER_SPRITE_R + OAMA_X], a
     .right_checked
 
@@ -472,7 +467,7 @@ throw_rock:
     jr z, .done
     TestPadInput PAD_PRSS, PADF_A
         jr nz, .done
-        ld a, 20
+        ld a, ROCK_TIME
         ld [ROCK_TIMER], a
         ld a, [AMMO_LEFT]
         dec a
@@ -505,9 +500,9 @@ move_barrels:
 
     MoveRow ROW_0_Y
     ld a, [ROW_0_Y]
-    cp a, 144
+    cp a, COLLIDE_UPPER
     jr nc, .no_collision_0
-        cp a, 128
+        cp a, VERTICAL_COLLISION_Y
             jr c, .no_collision_0
             CheckCollision BARREL_00_L, BARREL_01_L, BARREL_02_L
             jr nc, .no_collision_0
@@ -516,9 +511,9 @@ move_barrels:
     .no_collision_0
     MoveRow ROW_1_Y
     ld a, [ROW_1_Y]
-    cp a, 144
+    cp a, COLLIDE_UPPER
     jr nc, .no_collision_1
-    cp a, 128
+    cp a, VERTICAL_COLLISION_Y
     jr c, .no_collision_1
         CheckCollision BARREL_10_L, BARREL_11_L, BARREL_12_L
         jr nc, .no_collision_1
@@ -527,9 +522,9 @@ move_barrels:
     .no_collision_1
     MoveRow ROW_2_Y
     ld a, [ROW_2_Y]
-    cp a, 144
+    cp a, COLLIDE_UPPER
     jr nc, .no_collision_2
-    cp a, 128
+    cp a, VERTICAL_COLLISION_Y
     jr c, .no_collision_2
         CheckCollision BARREL_20_L, BARREL_21_L, BARREL_22_L
         jr nc, .no_collision_2
@@ -538,9 +533,9 @@ move_barrels:
     .no_collision_2
     MoveRow ROW_3_Y
     ld a, [ROW_3_Y]
-    cp a, 144
+    cp a, COLLIDE_UPPER
     jr nc, .no_collision_3
-    cp a, 128
+    cp a, VERTICAL_COLLISION_Y
     jr c, .no_collision_3
         CheckCollision BARREL_30_L, BARREL_31_L, BARREL_32_L
         jr nc, .no_collision_3
@@ -564,7 +559,7 @@ animate_win:
         copy [PLAYER_SPRITE_L + OAMA_TILEID], PLAYER_L_WIN_1
         copy [PLAYER_SPRITE_R + OAMA_TILEID], PLAYER_R_WIN_1
     .walk1
-    cp a, MOD_16
+    cp a, SIXTEEN
     jr nz, .check_start
         ; use tile 2
         copy [PLAYER_SPRITE_L + OAMA_TILEID], PLAYER_L_WIN_2

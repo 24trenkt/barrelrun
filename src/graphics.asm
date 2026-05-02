@@ -1,4 +1,4 @@
-; CS240: World 6: Game Draft
+; CS240: World 8: Full Game
 ; @file graphics.asm
 ; @author Tommy Trenk
 ; @date April 8, 2026
@@ -93,4 +93,4 @@ export init_graphics, check_start
 section "graphics_data", rom0[GRAPHICS_DATA_ADDRESS_START]
 incbin "assets/brtilesetfinal.chr"
 incbin "assets/brbackground.tlm"
-incbin "assets/brnewwindow.tlm"
+incbin "assets/finalwindow.tlm"

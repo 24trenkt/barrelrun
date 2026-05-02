@@ -1,6 +1,18 @@
-; Add a file header comment to all code files except hardware.inc
+; CS240: World 8: Full Game
+; @file graphics.inc
+; @author Tommy Trenk
+; @date May 1, 2026
+; Contains macros and constants to initialize graphics data and
+; update the screen when needed
 if !def(GRAPHICS_INC)
-def GRAPHICS_INC equ 1
+def GRAPHICS_INC        equ 1
+def NUM_TO_TILE         equ 200
+def PLAYER_SPRITE_L     equ _OAMRAM
+def PLAYER_SPRITE_R     equ _OAMRAM + sizeof_OAM_ATTRS
+def PLAYER_L_START_X    equ 80
+def PLAYER_R_START_X    equ 88
+def MOD_8               equ %00000111
+def MOD_16              equ %00001111
 
 ; disable the LCD
 macro DisableLCD

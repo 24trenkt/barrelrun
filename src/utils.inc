@@ -1,4 +1,8 @@
-; Add a file header comment to all code files except hardware.inc
+; CS240: World 8: Full Game
+; @file utils.inc
+; @author Tommy Trenk
+; @date May 1, 2026
+; Contains useful macros to manipulate memory
 if !def(UTILS_INC)
 def UTILS_INC equ 1
 
