@@ -1,7 +1,9 @@
 # License
 
-https://gibbongl.itch.io/free-mini-game-boy-asset-pack-1\
-https://itch.io/queue/c/2010337/game-boy-assets?game_id=1719353&password=\
+https://gibbongl.itch.io/free-mini-game-boy-asset-pack-1
+
+https://itch.io/queue/c/2010337/game-boy-assets?game_id=1719353&password=
+
 https://pine-druid.itch.io/barrel-sprite
 
 The first two links are the large majority of the background and sprite textures for 
